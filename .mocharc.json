@@ -1,0 +1,23 @@
+{
+    "inline-diffs": true,
+    "exit": true,
+    "extension": [
+      "ts"
+    ],
+    "require": [
+      "ts-node/register"
+    ],
+    "opts": false,
+    "ui": "bdd",
+    "watch-files": [
+      "**/*.ts",
+      "test/**/*.ts"
+    ],
+    "file": [
+      "test/index.ts"
+    ],
+    "spec": [
+      "**/*.spec.ts"
+    ]
+  }
+  
