@@ -1,7 +1,7 @@
 import { Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 
-import {InvalidValueError, RedisConnectorError, UNEXPECTED_ERROR_MESSAGE} from "../errors";
+import {InvalidValueError, RedisCounterDatabaseError, UNEXPECTED_ERROR_MESSAGE} from "../errors";
 import { CounterDatabase,LoggedData,Logger } from '../infrastructure/index';
 
 interface RequestBody {
@@ -105,9 +105,9 @@ export class TrackService {
             response.status(StatusCodes.BAD_REQUEST).json(errorResp);
         }
 
-        if (error instanceof RedisConnectorError) {
+        if (error instanceof RedisCounterDatabaseError) {
             const errorResp: ErrorResponseData = {
-                errorType: RedisConnectorError.name,
+                errorType: RedisCounterDatabaseError.name,
                 message: error.stack || UNEXPECTED_ERROR_MESSAGE
             };
             response.status(StatusCodes.INTERNAL_SERVER_ERROR).json(errorResp);

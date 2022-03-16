@@ -7,7 +7,7 @@ import { TestCounterDatabase } from '../../test/test-counter-database';
 import { TestLogger } from '../../test/test-logger';
 import { TrackResponseData, TrackService } from './track-service';
 
-describe.only('TrackService', () => {
+describe('TrackService', () => {
     const requestBody = {
         foo: 'foo',
         bar: 'bar'

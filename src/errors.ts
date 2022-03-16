@@ -1,8 +1,8 @@
-export class FileLoggerCorruptedError extends Error { }
+export class JsonLoggerCorruptedError extends Error { }
 
 export class ServiceConnectionError extends Error { }
 
-export class RedisConnectorError extends Error { }
+export class RedisCounterDatabaseError extends Error { }
 
 export class InvalidValueError extends Error { }
 

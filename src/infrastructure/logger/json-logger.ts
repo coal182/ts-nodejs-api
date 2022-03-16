@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 
-import { LoggedData,Logger } from './logger';
+import { JsonLoggerCorruptedError } from '../../errors';
+import { LoggedData, Logger } from './logger';
 
 export class JsonLogger implements Logger {
     private destination: string;
@@ -21,7 +22,6 @@ export class JsonLogger implements Logger {
     }
 
     public logData(inputData: object): void {
-    
         const loggedData: LoggedData = this.readData();
 
         loggedData.records.push(inputData);
@@ -31,7 +31,11 @@ export class JsonLogger implements Logger {
 
     public readData(): LoggedData {
         const currentFileContent = fs.readFileSync(this.destination).toString();
-        const loggedData: LoggedData = JSON.parse(currentFileContent);
-        return loggedData;
+        try {
+            const loggedData: LoggedData = JSON.parse(currentFileContent);
+            return loggedData;
+        } catch (error) {
+            throw new JsonLoggerCorruptedError(`content of ${this.destination} file is not a valid JSON`);
+        }
     }
 }
