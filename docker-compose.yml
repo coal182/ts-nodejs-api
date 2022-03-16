@@ -2,15 +2,15 @@ version: '3.5'
 
 services:
 
-  cmf-redis:
+  redis:
     image: redis:5-alpine
-    container_name: redis
+    container_name: cmf-redis
     ports:
       - 6380:6379
 
-  cmf-api:
+  api:
     image: node:17.6-alpine
-    container_name: api
+    container_name: cmf-api
     working_dir: /app
     volumes:
       - ./:/app
