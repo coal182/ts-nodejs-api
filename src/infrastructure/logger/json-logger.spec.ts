@@ -53,10 +53,8 @@ describe('JsonLogger', () => {
 
                 it('should throw an error if there is a logger file with invalid JSON format', async () => {
                     fs.writeFileSync(invalidJsonDestination, 'invalid json content');
-                    const jsonLogger = new JsonLogger(invalidJsonDestination);
-
-                    await assert.throws(() => { jsonLogger.readData() }, JsonLoggerCorruptedError, `content of ${invalidJsonDestination} file is not a valid JSON`);
-
+                    const jsonLoggerFail = new JsonLogger(invalidJsonDestination);                    
+                    await expect(jsonLoggerFail.logData(someRequest)).to.be.rejectedWith(JsonLoggerCorruptedError)
                 });
             });
         });
