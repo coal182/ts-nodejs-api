@@ -21,7 +21,7 @@ export class JsonLogger implements Logger {
         }
     }
 
-    public logData(inputData: object): void {
+    public async logData(inputData: object): Promise<void> {
         const loggedData: LoggedData = this.readData();
 
         loggedData.records.push(inputData);
