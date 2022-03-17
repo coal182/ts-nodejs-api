@@ -100,7 +100,7 @@ export class TrackService {
 
     }
 
-    sendBadRequest(response: Response, message: string): Response {
+    private sendBadRequest(response: Response, message: string): Response {
         return response.status(StatusCodes.BAD_REQUEST).json({ message: message });
     }
 
