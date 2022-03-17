@@ -19,8 +19,8 @@ It provides also a GET /count endpoint that returns a JSON with the actual count
 
 ```
 # run in dev mode on port 3000
+cp .env.template .env
 docker-compose up
-mv .env.template .env
 ```
 
 ## Endpoints

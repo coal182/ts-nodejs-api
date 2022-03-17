@@ -1,8 +1,9 @@
 import { Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 
-import {InvalidValueError, RedisCounterDatabaseError, UNEXPECTED_ERROR_MESSAGE} from "../errors";
-import { CounterDatabase,LoggedData,Logger } from '../infrastructure/index';
+import { InvalidValueError, RedisCounterDatabaseError, UNEXPECTED_ERROR_MESSAGE } from "../errors";
+import { CounterDatabase, LoggedData, Logger } from '../infrastructure/index';
+import { Utils } from './../utils';
 
 interface RequestBody {
     [key: string]: unknown;
@@ -62,37 +63,47 @@ export class TrackService {
 
             return trackResponse;
 
-        } catch (error) {            
+        } catch (error) {
             this.handleError(error, response);
         }
     }
 
     private hasCount(body: object): body is RequestBody {
 
-        return (body.hasOwnProperty('count')) ?  true : false;
+        return (body.hasOwnProperty('count')) ? true : false;
 
     }
 
     private validateCountValue(count: string | number, response: Response) {
 
+        const utils = new Utils();
+
         if (typeof count === 'string') {
 
-            if (!count.length) response.status(StatusCodes.BAD_REQUEST).json({ message: 'count value cannot be empty' });
-            if (isNaN(parseInt(count))) response.status(StatusCodes.BAD_REQUEST).json({ message: 'count value must be a number' });
-            if (count === "0") response.status(StatusCodes.BAD_REQUEST).json({ message: 'count value cannot be zero' });
+            if (utils.isStringEmpty(count)) { this.sendBadRequest(response, 'count value cannot be empty'); return false; }
+            if (utils.notNumber(count)) { this.sendBadRequest(response, 'count value must be a number'); return false; }
+            if (utils.isZero(count)) { this.sendBadRequest(response, 'count value cannot be zero'); return false; }
 
-        }else if (typeof count === 'number') {
+            return true;
 
-            if (count === 0) response.status(StatusCodes.BAD_REQUEST).json({ message: 'count value cannot be zero' }); 
+        } else if (typeof count === 'number') {
 
-        }else{
+            if (utils.isZero(count)) { this.sendBadRequest(response, 'count value cannot be zero'); return false; }
 
-            response.status(StatusCodes.BAD_REQUEST).json({ message: 'count value is not a valid number' });
+            return true;
 
-        }      
-                       
-        return true;
+        } else {
 
+            this.sendBadRequest(response, 'count value is not a valid number');
+
+            return false;
+
+        }
+
+    }
+
+    sendBadRequest(response: Response, message: string): Response {
+        return response.status(StatusCodes.BAD_REQUEST).json({ message: message });
     }
 
     private handleError(error: unknown, response: Response) {
@@ -113,5 +124,5 @@ export class TrackService {
             response.status(StatusCodes.INTERNAL_SERVER_ERROR).json(errorResp);
         }
     }
-    
+
 }
