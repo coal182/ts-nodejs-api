@@ -1,6 +1,5 @@
 # TypeScript NodeJS API
 
-![npm Version](https://badge.fury.io/js/npm.svg)
 ![Build Status](https://github.com/sds/mock_redis/actions/workflows/tests.yml/badge.svg)
 
 NodeJS API using Typescript that receives any JSON request in the POST endpoint /track and saves it in a log file. 
