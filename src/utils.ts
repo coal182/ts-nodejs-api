@@ -1,20 +1,14 @@
 import { Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 
-export class Utils {
+export function isStringEmpty(count: string): boolean {
+    return !count.length;
+}
 
-    constructor() {}
+export function notNumber(count: string): boolean {
+    return isNaN(parseInt(count));
+}
 
-    isStringEmpty(count: string): boolean {
-        return !count.length;
-    }
-
-    notNumber(count: string): boolean {
-        return isNaN(parseInt(count));
-    }
-
-    isZero(count: string | number): boolean {
-        return count === "0" || count === 0;
-    }
-
+export function isZero(count: string | number): boolean {
+    return count === "0" || count === 0;
 }

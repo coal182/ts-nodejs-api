@@ -3,7 +3,7 @@ import { StatusCodes } from 'http-status-codes';
 
 import { InvalidValueError, RedisCounterDatabaseError, UNEXPECTED_ERROR_MESSAGE } from "../errors";
 import { CounterDatabase, LoggedData, Logger } from '../infrastructure/index';
-import { Utils } from './../utils';
+import { isStringEmpty,isZero,notNumber } from './../utils';
 
 interface RequestBody {
     [key: string]: unknown;
@@ -76,19 +76,17 @@ export class TrackService {
 
     private validateCountValue(count: string | number, response: Response) {
 
-        const utils = new Utils();
-
         if (typeof count === 'string') {
 
-            if (utils.isStringEmpty(count)) { this.sendBadRequest(response, 'count value cannot be empty'); return false; }
-            if (utils.notNumber(count)) { this.sendBadRequest(response, 'count value must be a number'); return false; }
-            if (utils.isZero(count)) { this.sendBadRequest(response, 'count value cannot be zero'); return false; }
+            if (isStringEmpty(count)) { this.sendBadRequest(response, 'count value cannot be empty'); return false; }
+            if (notNumber(count)) { this.sendBadRequest(response, 'count value must be a number'); return false; }
+            if (isZero(count)) { this.sendBadRequest(response, 'count value cannot be zero'); return false; }
 
             return true;
 
         } else if (typeof count === 'number') {
 
-            if (utils.isZero(count)) { this.sendBadRequest(response, 'count value cannot be zero'); return false; }
+            if (isZero(count)) { this.sendBadRequest(response, 'count value cannot be zero'); return false; }
 
             return true;
 
