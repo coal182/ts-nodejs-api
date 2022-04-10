@@ -19,7 +19,11 @@ const countService = new CountService(counterDatabase);
 
 export const Router = (app: Application): void => {
     app.get('/count', async (req: Request, res: Response) => {
-        return res.status(StatusCodes.OK).send(await countService.getCount());
+        countService.getCount()
+            .then(data => res.status(StatusCodes.OK).send(data))
+            .catch(err => {
+                return res.status(StatusCodes.INTERNAL_SERVER_ERROR);
+            })
     });
 
     app.use('/track', isBodyEmpty);
