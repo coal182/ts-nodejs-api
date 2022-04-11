@@ -1,24 +1,19 @@
-import { Response } from 'express';
+import { Response, response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 
-import { InvalidValueError, RedisCounterDatabaseError, UNEXPECTED_ERROR_MESSAGE } from "../errors";
+import { InvalidValueError } from "../errors";
 import { CounterDatabase, LoggedData, Logger } from '../infrastructure/index';
-import { isStringEmpty,isZero,notNumber } from './../utils';
+import { hasCount,isStringEmpty,isZero,notNumber } from './../utils';
 
 interface RequestBody {
     [key: string]: unknown;
-    count: string;
+    count?: number|string;
 }
 
 export interface TrackResponseData {
     message: string;
     previousCount?: number;
     count: number;
-}
-
-export interface ErrorResponseData {
-    errorType: string,
-    message: string;
 }
 
 export class TrackService {
@@ -30,97 +25,67 @@ export class TrackService {
         this.counterDatabase = counterDatabase;
     }
 
-    public async track(body: object, response: Response): Promise<TrackResponseData | void> {
+    public async track(body: RequestBody): Promise<TrackResponseData | void> {
 
-        try {
+        this.logger.logData(body);            
 
-            this.logger.logData(body);
-
-            const currentCount = await this.counterDatabase.getCount();
-
-            if (this.hasCount(body)) {
-
-                if (this.validateCountValue(body.count, response)) {
-
-                    const newCount = Number(body.count);
-                    await this.counterDatabase.incrementCount(newCount);
-
-                    const trackResponse: TrackResponseData = {
-                        message: 'Count has been increased successfully',
-                        previousCount: currentCount,
-                        count: await this.counterDatabase.getCount()
-                    }
-
-                    return trackResponse;
-                }
-
-            }
+        const currentCount = await this.counterDatabase.getCount();
+        
+        if (this.validateCountValue(body)) {
+            
+            const incrementCount = Number(body.count);
+            const newCount = await this.counterDatabase.incrementCount(incrementCount);
 
             const trackResponse: TrackResponseData = {
-                message: 'The request has been logged successfully',
-                count: currentCount
+                message: 'Count has been increased successfully',
+                previousCount: currentCount,
+                count: newCount
             }
 
             return trackResponse;
-
-        } catch (error) {
-            this.handleError(error, response);
         }
+
+        const trackResponse: TrackResponseData = {
+            message: 'The request has been logged successfully',
+            count: currentCount
+        }
+
+        return trackResponse;
+
     }
 
-    private hasCount(body: object): body is RequestBody {
+    
 
-        return (body.hasOwnProperty('count')) ? true : false;
+    private validateCountValue(body: RequestBody) {
 
-    }
+        if (hasCount(body)){
 
-    private validateCountValue(count: string | number, response: Response) {
+            const count = body.count;
 
-        if (typeof count === 'string') {
+            if (typeof count === 'string') {
+                
+                if (isStringEmpty(count)) { throw new InvalidValueError('count value cannot be empty') }
+                if (notNumber(count)) { throw new InvalidValueError('count value must be a number') }
+                if (isZero(count)) { throw new InvalidValueError('count value cannot be zero') }
+    
+                return true;
+    
+            } else if (typeof count === 'number') {
+    
+                if (isZero(count)) { throw new InvalidValueError('count value cannot be zero') }
+    
+                return true;
+    
+            } else {
+    
+                throw new InvalidValueError('count value is not a valid number');
+    
+            }
 
-            if (isStringEmpty(count)) { this.sendBadRequest(response, 'count value cannot be empty'); return false; }
-            if (notNumber(count)) { this.sendBadRequest(response, 'count value must be a number'); return false; }
-            if (isZero(count)) { this.sendBadRequest(response, 'count value cannot be zero'); return false; }
-
-            return true;
-
-        } else if (typeof count === 'number') {
-
-            if (isZero(count)) { this.sendBadRequest(response, 'count value cannot be zero'); return false; }
-
-            return true;
-
-        } else {
-
-            this.sendBadRequest(response, 'count value is not a valid number');
-
+        }else{
             return false;
+        }        
 
-        }
-
-    }
-
-    private sendBadRequest(response: Response, message: string): Response {
-        return response.status(StatusCodes.BAD_REQUEST).json({ message: message });
-    }
-
-    private handleError(error: unknown, response: Response) {
-        if (error instanceof InvalidValueError) {
-            const errorResp: ErrorResponseData = {
-                errorType: InvalidValueError.name,
-                message: error.message
-            };
-
-            response.status(StatusCodes.BAD_REQUEST).json(errorResp);
-        }
-
-        if (error instanceof RedisCounterDatabaseError) {
-            const errorResp: ErrorResponseData = {
-                errorType: RedisCounterDatabaseError.name,
-                message: error.stack || UNEXPECTED_ERROR_MESSAGE
-            };
-            response.status(StatusCodes.INTERNAL_SERVER_ERROR).json(errorResp);
-        }
     }
 
 }

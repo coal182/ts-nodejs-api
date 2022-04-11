@@ -10,3 +10,9 @@ export function notNumber(count: string): boolean {
 export function isZero(count: string | number): boolean {
     return count === "0" || count === 0;
 }
+
+export function hasCount(body: object) {
+
+    return (body.hasOwnProperty('count')) ? true : false;
+
+}

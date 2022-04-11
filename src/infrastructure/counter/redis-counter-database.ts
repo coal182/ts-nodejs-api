@@ -1,7 +1,9 @@
 import { RedisClientType } from '@node-redis/client';
 import { createClient } from 'redis';
 
+import { InvalidValueError, RedisCounterDatabaseError, ServiceConnectionError, UNEXPECTED_ERROR_MESSAGE } from "../../errors";
 import { CounterDatabase,countKey } from './counter-database';
+
 
 export type RedisConfig = {
     host?: string;
@@ -12,26 +14,35 @@ export class RedisCounterDatabase implements CounterDatabase {
     private redisClient: RedisClientType;
 
     constructor(redisConfig: RedisConfig) {
+        
         this.redisClient = createClient({ socket: redisConfig });
-        this.connect();
+
     }
 
-    private connect(): void {
-        this.redisClient.connect();
-
-        this.redisClient.on('error', (error: Error) => {
-            throw error;
-        });
+    public async createConnection(): Promise<void> {
+        try {
+            const redisConnection = await this.redisClient.connect();
+            return redisConnection;
+        } catch (error) {
+            throw new RedisCounterDatabaseError('Could not connect to redis: ' + error);
+        }
     }
 
     public async getCount(): Promise<number> {
-        const value = await this.redisClient.get(countKey);
-
-        return Number(value) || 0;
+        try {
+            const value = await this.redisClient.get(countKey);
+            return Number(value) || 0;
+        } catch (error) {
+            throw new ServiceConnectionError('Could not get count in redis: ' + error);
+        }
     }
 
     public async setCount(value: number): Promise<void> {
-        await this.redisClient.set(countKey, value);
+        try {
+            await this.redisClient.set(countKey, value);
+        } catch (error) {
+            throw new RedisCounterDatabaseError('Could not set count in redis: ' + error);
+        }
     }
 
     public async incrementCount(value: number): Promise<number> {
@@ -39,8 +50,7 @@ export class RedisCounterDatabase implements CounterDatabase {
             const incrementedCount = await this.redisClient.incrBy(countKey, value);
             return Number(incrementedCount);
         } catch (error) {
-            console.error(error);
-            throw new Error('Could not persist the data in redis');
+            throw new RedisCounterDatabaseError('Could not persist the data in redis: ' + error);
         }
     }
 }

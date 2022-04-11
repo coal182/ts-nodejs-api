@@ -1,4 +1,5 @@
 import { expect } from 'chai';
+import { response } from 'express';
 import { stub } from 'sinon';
 
 import { TestCounterDatabase } from '../../test/test-counter-database';
@@ -25,7 +26,7 @@ describe(CountService.name, () => {
                 const failCounterDatabase = new TestCounterDatabase();
                 const countService = new CountService(failCounterDatabase);
 
-                const error = new Error('Server has failed');
+                const error = new ServiceConnectionError('Server has failed');
                 stub(failCounterDatabase, 'getCount').rejects(error);
 
                 await expect(countService.getCount()).to.be.rejectedWith(ServiceConnectionError);
